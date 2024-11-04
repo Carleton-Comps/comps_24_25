@@ -3,6 +3,8 @@ from poke_env.player.battle_order import BattleOrder
 from poke_env.environment.battle import Battle
 from poke_env.environment.pokemon import Pokemon
 from poke_env.player.random_player import RandomPlayer
+from type_chart import TYPE_CHART
+from vigor_chart import VIGOR_CHART
 import numpy as np
 from typing import List, Tuple, Optional, Union, Dict
 import random
@@ -94,8 +96,81 @@ class MinMaxAgent(Player):
             if battle.opponent_active_pokemon.status is not None:
                 status_score += 20
 
-            # Total score
-            total_score = hp_score + pokemon_score + status_score
+            # Type advantage scoring
+            type_score = 0
+            our_types = battle.active_pokemon.types
+            opponent_types = battle.opponent_active_pokemon.types
+
+            # Calculate type advantage for our Pokemon against opponent
+            for our_type in our_types:
+                for opp_type in opponent_types:
+                    if opp_type in TYPE_CHART and our_type in TYPE_CHART[opp_type]["damageTaken"]:
+                        damage_taken = TYPE_CHART[opp_type]["damageTaken"][our_type]
+                        if damage_taken == 1:  # Super effective
+                            type_score += 30
+                        elif damage_taken == 2:  # Not very effective
+                            type_score -= 15
+                        elif damage_taken == 3:  # Immune
+                            type_score -= 30
+
+            # Calculate opponent's type advantage against us
+            for opp_type in opponent_types:
+                for our_type in our_types:
+                    if our_type in TYPE_CHART and opp_type in TYPE_CHART[our_type]["damageTaken"]:
+                        damage_taken = TYPE_CHART[our_type]["damageTaken"][opp_type]
+                        if damage_taken == 1:  # Super effective against us
+                            type_score -= 30
+                        elif damage_taken == 2:  # Not very effective against us
+                            type_score += 15
+                        elif damage_taken == 3:  # We're immune
+                            type_score += 30
+
+            # Vigor scoring
+            vigor_score = 0
+            
+            # Calculate our Pokemon's vigor penalty
+            if battle.active_pokemon.status:
+                status = battle.active_pokemon.status.value
+                if status in VIGOR_CHART:
+                    vigor_info = VIGOR_CHART[status]
+                    # Base penalty based on severity
+                    base_penalty = vigor_info["severity"] * -10
+                    
+                    # Additional penalties based on status effects
+                    if "damage" in vigor_info:  # For burn, poison
+                        vigor_score += base_penalty - 15
+                    if "attack_modifier" in vigor_info:  # For burn
+                        if any(move.category == "PHYSICAL" for move in battle.available_moves):
+                            vigor_score -= 20
+                    if "speed_modifier" in vigor_info:  # For paralysis
+                        vigor_score -= 25
+                    if "move_chance" in vigor_info:  # For sleep, freeze
+                        if vigor_info["move_chance"] == 0:
+                            vigor_score -= 40
+                        else:
+                            vigor_score -= 20
+
+            # Calculate opponent's vigor penalty (reverse the scores)
+            if battle.opponent_active_pokemon.status:
+                status = battle.opponent_active_pokemon.status.value
+                if status in VIGOR_CHART:
+                    vigor_info = VIGOR_CHART[status]
+                    base_bonus = vigor_info["severity"] * 10
+                    
+                    if "damage" in vigor_info:
+                        vigor_score += base_bonus + 15
+                    if "attack_modifier" in vigor_info:
+                        vigor_score += 20
+                    if "speed_modifier" in vigor_info:
+                        vigor_score += 25
+                    if "move_chance" in vigor_info:
+                        if vigor_info["move_chance"] == 0:
+                            vigor_score += 40
+                        else:
+                            vigor_score += 20
+
+            # Combine all scores
+            total_score = hp_score + pokemon_score + status_score + type_score + vigor_score
             
             return total_score
             
