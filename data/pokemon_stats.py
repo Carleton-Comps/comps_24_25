@@ -40,6 +40,9 @@ class PokemonData:
         return poke_data["Checks and Counters"][opponent]
 
     def get_most_common_build(self, pokemon: str):
+        """
+        Returns the most common EV spread and 
+        """
         poke_data = self.get_pokemon_info(pokemon)
 
         poke_builds = poke_data["Spreads"]
