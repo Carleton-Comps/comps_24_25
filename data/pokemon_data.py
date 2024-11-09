@@ -29,6 +29,42 @@ class PokemonData:
         Returns all the aggregated battle information of the requested Pokemon
         """
         return self.data[pokemon]
+    
+    def get_most_common_moves(self, pokemon: str):
+        """
+        Returns a list of the 8 most common moves that the specified Pokémon uses
+        """
+        poke_data = self.get_pokemon_info(pokemon)
+
+        poke_moves = poke_data["Moves"]
+
+        most_common_moves = sorted(poke_moves, key=poke_moves.get, reverse=True)[:8]
+
+        return most_common_moves
+    
+    def get_most_common_ability(self, pokemon: str):
+        """
+        Returns the most common ability 
+        """
+        poke_data = self.get_pokemon_info(pokemon)
+
+        poke_ability = poke_data["Abilities"]
+
+        most_common_ability = max(poke_ability, key=poke_ability.get)
+
+        return most_common_ability
+    
+    def get_most_common_items(self, pokemon: str):
+        """
+        Returns a list of the 4 most common items that the specified Pokémon uses
+        """
+        poke_data = self.get_pokemon_info(pokemon)
+
+        poke_items = poke_data["Items"]
+
+        most_common_items = sorted(poke_items, key=poke_items.get, reverse=True)[:4]
+
+        return most_common_items
 
     def get_matchup_info(self, pokemon: str, opponent: str) -> list:
         """
