@@ -3,14 +3,16 @@ from poke_env.player.battle_order import BattleOrder
 from poke_env.environment.battle import Battle
 from poke_env.environment.pokemon import Pokemon
 from poke_env.player.random_player import RandomPlayer
+from teambuilder.custom_teambuilder import custom_builder  # Import the custom teambuilder
+import asyncio
 import numpy as np
 from typing import List, Tuple, Optional, Union, Dict
 import random
 
 
 class MinMaxAgent(Player):
-    def __init__(self, battle_format: str, max_depth: int = 2):
-        super().__init__(battle_format=battle_format)
+    def __init__(self, battle_format: str, teambuilder=None, max_depth: int = 2):
+        super().__init__(battle_format=battle_format, team=teambuilder)
         self.max_depth = max_depth
 
     def choose_move(self, battle: Battle) -> BattleOrder:
@@ -182,8 +184,9 @@ class MinMaxAgent(Player):
 async def main():
     try:
         # Create players
-        player1 = MinMaxAgent(battle_format="gen9randombattle", max_depth=2)
-        player2 = RandomPlayer(battle_format="gen9randombattle")
+        # custom_builder.yield_team() for random team made from hard coded pokemons
+        player1 = MinMaxAgent(battle_format="gen9randombattle", team=custom_builder, max_depth=2)
+        player2 = RandomPlayer(battle_format="gen9randombattle", team=custom_builder)
 
         print("Starting battle...")
         print("Player 1: MinMax Agent")

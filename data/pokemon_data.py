@@ -101,4 +101,4 @@ if __name__ == "__main__":
     d = PokemonData()
     pokemon = "Iron Valiant"
 
-    pprint(d.get_matchup_info("Kingambit", "Iron Hands"))
+    pprint(d.get_most_common_ability(pokemon))
