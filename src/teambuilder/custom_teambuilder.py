@@ -23,28 +23,30 @@ class SingleTeamTeambuilder(Teambuilder):
      
 
 team = """
-Bloodmoon Ursaluna (M) @ Assault Vest
-Ability: Mind's Eye
-EVs: 252 HP / 252 SpA / 4 SpD
-Modest Nature
-IVs: 0 Atk
-- Blood Moon
-- Earth Power
-- Moonblast
-- Vacuum Wave
 
-Dragonite (M) @ Loaded Dice
+Porygon2 @ Eviolite 
+Ability: Download  
+Tera Type: Poison  
+EVs: 244 HP / 12 Def / 252 SpD  
+Bold Nature  
+- Tri Attack  
+- Shadow Ball  
+- Thunder Wave  
+- Recover
+
+Dragonite @ Loaded Dice
 Ability: Multiscale
+Tera Type: Fire
 EVs: 252 Atk / 252 Spe / 4 HP
 Adamant  Nature
-IVs: 0 Atk
 - Extreme Speed
 - Scale Shot
 - Fire Punch
 - Dragon Dance
 
-Gholdengo (M) @ Covert Cloak
+Gholdengo @ Covert Cloak
 Ability: Good as Gold
+Tera Type: Flying
 EVs: 208 SpA / 212 HP / 84 Spe / 4 Def
 Modest Nature
 - Make It Rain
@@ -52,17 +54,19 @@ Modest Nature
 - Psyshock
 - Nasty Plot
 
-Archaludon (M) @ Sitrus Berry
+Corviknight @ Sitrus Berry
 Ability: Stamina
-EVs: 204 HP / 28 Atk / 20 Def / 252 SpD / 4 Spe
-Bold Nature
+Tera Type: Fairy  
+EVs: 252 HP / 60 Def / 196 SpD
+Careful Nature
 - Dragon Tail
 - Body Press
 - Foul Play
 - Stealth Rock
 
-Dondozo (M) @ Leftovers
+Dondozo @ Leftovers
 Ability: Unaware
+Tera Type: Steel
 EVs: 252 HP / 252 Def / 4 SpD
 Lax Nature
 - Wave Crash
@@ -70,8 +74,9 @@ Lax Nature
 - Yawn
 - Protect
 
-Meowscarada (M) @ Choice Band
+Meowscarada @ Choice Band
 Ability: Protean
+Tera Type: Steel
 EVs: 252 Atk / 4 Def / 252 Spe
 Jolly Nature
 - Flower Trick
