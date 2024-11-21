@@ -155,6 +155,12 @@ dmypy.json
 cython_debug/
 
 pokemon-showdown
+src/minimax.txt
+src/test.ipynb
+engine
+test.ipynb
+test2.py
+
 
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
