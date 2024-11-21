@@ -3,6 +3,7 @@ from poke_env.player.battle_order import BattleOrder
 from poke_env.environment.battle import Battle
 from poke_env.environment.pokemon import Pokemon
 from poke_env.player.random_player import RandomPlayer
+from teambuilder.custom_teambuilder import custom_builder
 from type_chart import TYPE_CHART
 from vigor_chart import VIGOR_CHART
 import numpy as np
@@ -10,8 +11,12 @@ from typing import List, Tuple, Optional, Union, Dict
 import random
 
 class MinMaxAgent(Player):
-    def __init__(self, battle_format: str, max_depth: int = 2):
-        super().__init__(battle_format=battle_format)
+    def __init__(self, battle_format: str, teambuilder=None, max_depth: int = 2):
+        if teambuilder is not None:
+            team = teambuilder.yield_team()
+        else:
+            team = None
+        super().__init__(battle_format=battle_format, team=team)
         self.max_depth = max_depth
 
     def battle_engine(self, battle: Battle) -> float:
@@ -51,6 +56,24 @@ class MinMaxAgent(Player):
                 point_modifier -= 40
 
         return point_modifier
+
+    # def action_engine(self, battle: Battle) -> float:
+    # """
+    # Analyzes move-related states and returns point modifiers for the total score
+    # """
+    # point_move_modifier = 0.0
+
+    # # Case 1: Strong moves available
+    # for move in battle.available_moves:
+    #     if getattr(move, 'base_power', 0) > 90:  # Strong move threshold
+    #         point_move_modifier += 25  # Bonus for having powerful moves available
+
+    # # Case 2: Move type variety (rewards having moves of different types)
+    # move_types = set(getattr(move, 'type', None) for move in battle.available_moves)
+    # if len(move_types) >= 3:  # If we have moves of 3 or more different types
+    #     point_move_modifier += 30
+
+    # return point_move_modifier
 
     def choose_move(self, battle: Battle) -> BattleOrder:
         """Main method to choose moves using MinMax algorithm"""
@@ -232,6 +255,9 @@ class MinMaxAgent(Player):
             
             # Add battle engine point modifiers
             total_score += self.battle_engine(battle)
+
+            # Add action engine point modifiers
+            # total_score += self.action_engine(battle)
             
             return total_score
             
@@ -297,9 +323,9 @@ class MinMaxAgent(Player):
 
 async def main():
     try:
-        # Create players
-        player1 = MinMaxAgent(battle_format="gen9randombattle", max_depth=2)
-        player2 = RandomPlayer(battle_format="gen9randombattle")
+        # Create players with custom teambuilder
+        player1 = MinMaxAgent(battle_format="gen9ou", teambuilder=custom_builder, max_depth=2)
+        player2 = RandomPlayer(battle_format="gen9ou", team=custom_builder.yield_team())  # Note different format for RandomPlayer
 
         print("Starting battle...")
         print("Player 1: MinMax Agent")
