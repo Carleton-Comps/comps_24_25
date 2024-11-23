@@ -12,6 +12,8 @@ import numpy as np
 from typing import List, Tuple, Optional, Union, Dict
 import random
 import poke_battle_sim
+from poke_battle_sim import PokeSim
+from poke_battle_sim.conf import global_settings as gs
 
 
 class MinMaxAgent(Player):
