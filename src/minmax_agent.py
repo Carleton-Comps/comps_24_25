@@ -6,8 +6,9 @@ from poke_env.environment.battle import Battle
 from poke_env.environment.pokemon import Pokemon
 from poke_env.player.random_player import RandomPlayer
 from teambuilder.custom_teambuilder import custom_builder
-from type_chart import TYPE_CHART
-from vigor_chart import VIGOR_CHART
+
+# from data.type_chart import TYPE_CHART
+# from data.vigor_chart import VIGOR_CHART
 import numpy as np
 from typing import List, Tuple, Optional, Union, Dict
 import random
@@ -16,6 +17,7 @@ from poke_battle_sim import PokeSim
 from poke_battle_sim.conf import global_settings as gs
 from poke_battle_sim import PokeSim
 from poke_battle_sim.conf import global_settings as gs
+from MinimaxNode import MiniMaxNode
 
 
 class MinMaxAgent(Player):
@@ -26,6 +28,7 @@ class MinMaxAgent(Player):
             team = None
         super().__init__(battle_format=battle_format, team=team)
         self.max_depth = max_depth
+        self.sim_battle = None
 
     def simulate_state(
         self, battle: poke_battle_sim.Battle, move1: str, move2: str
@@ -47,23 +50,23 @@ class MinMaxAgent(Player):
     # def battle_engine(self, battle: poke_battle_sim.Battle) -> float:
     #     """
     #     As of now so I dont forget this is what our engine is doing:
-        
+
     #     Args:
     #         battle: A poke_battle_sim Battle object containing the current battle state
-        
+
     #     Returns:
     #         Float point modifier representing the evaluated battle state
     #     """
     #     # the original variable definitions
     #     poke = poke_battle_sim.Pokemon("Pikachu", 50, ["tackle"], "male")
-    #     p1 = poke_battle_sim.Trainer("a", [poke]) 
+    #     p1 = poke_battle_sim.Trainer("a", [poke])
     #     p2 = poke_battle_sim.Trainer("b", [poke])
-        
+
     #     # Create a new battle instance
     #     sim_battle = poke_battle_sim.Battle(p1, p2)
-        
+
     #     point_modifier = 0.0
-        
+
     #     # Get the current Pokemon for each trainer
     #     our_pokemon = sim_battle.t1.current_poke
     #     opponent_pokemon = sim_battle.t2.current_poke
@@ -169,9 +172,10 @@ class MinMaxAgent(Player):
 
     # return point_move_modifier
 
-    def choose_move(self, battle: Battle) -> BattleOrder:
+    def choose_move(self, battle: Battle) -> BattleOrder:  # type: ignore
         """Main method to choose moves using MinMax algorithm"""
-        try:
+        # try:
+        """
             # Get all possible actions (moves and switches unified)
             our_moves = self.get_possible_moves(battle)
             opponent_moves = self.get_possible_opponent_moves(battle)
@@ -180,87 +184,14 @@ class MinMaxAgent(Player):
             payoff_matrix = self.create_payoff_matrix(battle, our_moves, opponent_moves)
 
             # Get best move using minimax
-            best_move = self.minimax(
-                battle=battle,
-                depth=self.max_depth,
-                is_max_player=True,
-                payoff_matrix=payoff_matrix,
-            )
+            best_move = self.minimax(self.sim_battle, self.max_depth, 10000, 100000, True)  # type: ignore
 
             if best_move is None or best_move[1] is None:
                 return self.choose_random_move(battle)
 
             return self.create_order(best_move[1])
-
-        except Exception as e:
-            print(f"Error in choose_move: {str(e)}")
-            return self.choose_random_move(battle)
-
-    def create_payoff_matrix(
-        self, battle: Battle, our_moves: List, opponent_moves: List
-    ) -> Dict:
-        """Create payoff matrix for all possible move combinations"""
-        matrix = {}
-        for our_move in our_moves:
-            matrix[our_move] = {}
-            for opp_move in opponent_moves:
-                score = self.evaluate_move_combination(battle, our_move, opp_move)
-                matrix[our_move][opp_move] = score
-        return matrix
-
-    def evaluate_move_combination(
-        self,
-        battle: Battle,
-        our_move: Union[Pokemon, BattleOrder],
-        opp_move: Union[Pokemon, BattleOrder],
-    ) -> float:
-        """Evaluate moves and switches equally"""
-        base_score = self.evaluate_state(battle)
-        move_score = 0.0
-
-        if isinstance(our_move, BattleOrder):
-            # Regular move scoring
-            move_score += getattr(our_move, "base_power", 0) * 0.5
-            move_score += getattr(our_move, "accuracy", 100) * 0.1
-
-        elif isinstance(our_move, Pokemon):
-            # Switch scoring
-            current_mon = battle.active_pokemon
-            potential_switch = our_move
-
-            # Assess HP difference
-            hp_advantage = (
-                potential_switch.current_hp_fraction - current_mon.current_hp_fraction
-            )
-            move_score += hp_advantage * 50
-
-            # Type advantage of switched Pokemon
-            for move_type in potential_switch.types:
-                for opp_type in battle.opponent_active_pokemon.types:
-                    if (
-                        opp_type in TYPE_CHART
-                        and move_type in TYPE_CHART[opp_type]["damageTaken"]
-                    ):
-                        effectiveness = TYPE_CHART[opp_type]["damageTaken"][move_type]
-                        if effectiveness == 1:  # Super effective
-                            move_score += 30
-                        elif effectiveness == 2:  # Not very effective
-                            move_score -= 15
-
-            # Consider switching out of bad status
-            if current_mon.status is not None:
-                move_score += 40  # Bonus for switching out of status
-
-            # Consider switching against bad matchup
-            if any(move.base_power > 80 for move in battle.available_moves):
-                move_score -= (
-                    20  # Penalty for switching out with strong moves available
-                )
-
-        if isinstance(opp_move, BattleOrder):
-            move_score -= getattr(opp_move, "base_power", 0) * 0.5
-
-        return base_score + move_score
+        """
+        return self.choose_default_move()
 
     def evaluate_state(self, battle: poke_battle_sim.Battle) -> float:
         """Evaluate the current battle state"""
@@ -393,16 +324,20 @@ class MinMaxAgent(Player):
 
         if depth == 0 or battle.is_finished:
             return self.evaluate_state(battle)
-        else:
-            pass
+
+        if isPlayerTurn:
+            maxValue = -float("Inf")
+
         return 1
 
+    """
     def choose_random_move(self, battle: Battle) -> BattleOrder:
-        """Choose a random move from available moves or switches"""
         moves = self.get_possible_moves(battle)
         if moves:
             return self.create_order(random.choice(moves))
         return self.create_order("struggle")
+        
+    """
 
     def get_possible_moves(self, battle: Battle) -> List[Union[Pokemon, BattleOrder]]:
         """Get all possible moves and switches as one unified moveset"""
