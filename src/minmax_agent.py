@@ -14,6 +14,8 @@ import random
 import poke_battle_sim
 from poke_battle_sim import PokeSim
 from poke_battle_sim.conf import global_settings as gs
+from poke_battle_sim import PokeSim
+from poke_battle_sim.conf import global_settings as gs
 
 
 class MinMaxAgent(Player):
@@ -42,112 +44,112 @@ class MinMaxAgent(Player):
 
         return battle
 
-    def battle_engine(self, battle: poke_battle_sim.Battle) -> float:
-        """
-        As of now so I dont forget this is what our engine is doing:
+    # def battle_engine(self, battle: poke_battle_sim.Battle) -> float:
+    #     """
+    #     As of now so I dont forget this is what our engine is doing:
         
-        Args:
-            battle: A poke_battle_sim Battle object containing the current battle state
+    #     Args:
+    #         battle: A poke_battle_sim Battle object containing the current battle state
         
-        Returns:
-            Float point modifier representing the evaluated battle state
-        """
-        # the original variable definitions
-        poke = poke_battle_sim.Pokemon("Pikachu", 50, ["tackle"], "male")
-        p1 = poke_battle_sim.Trainer("a", [poke]) 
-        p2 = poke_battle_sim.Trainer("b", [poke])
+    #     Returns:
+    #         Float point modifier representing the evaluated battle state
+    #     """
+    #     # the original variable definitions
+    #     poke = poke_battle_sim.Pokemon("Pikachu", 50, ["tackle"], "male")
+    #     p1 = poke_battle_sim.Trainer("a", [poke]) 
+    #     p2 = poke_battle_sim.Trainer("b", [poke])
         
-        # Create a new battle instance
-        sim_battle = poke_battle_sim.Battle(p1, p2)
+    #     # Create a new battle instance
+    #     sim_battle = poke_battle_sim.Battle(p1, p2)
         
-        point_modifier = 0.0
+    #     point_modifier = 0.0
         
-        # Get the current Pokemon for each trainer
-        our_pokemon = sim_battle.t1.current_poke
-        opponent_pokemon = sim_battle.t2.current_poke
+    #     # Get the current Pokemon for each trainer
+    #     our_pokemon = sim_battle.t1.current_poke
+    #     opponent_pokemon = sim_battle.t2.current_poke
 
-        # Game State 1: Team HP States
-        our_hp_fraction = our_pokemon.cur_hp / our_pokemon.max_hp
-        opp_hp_fraction = opponent_pokemon.cur_hp / opponent_pokemon.max_hp
+    #     # Game State 1: Team HP States
+    #     our_hp_fraction = our_pokemon.cur_hp / our_pokemon.max_hp
+    #     opp_hp_fraction = opponent_pokemon.cur_hp / opponent_pokemon.max_hp
 
-        # Penalize for low HP
-        if our_hp_fraction < 1.0:  # Any damage
-            point_modifier -= 15
-        if our_hp_fraction < 0.5:  # Below half health
-            point_modifier -= 25
-        if our_hp_fraction < 0.25:  # Critical health
-            point_modifier -= 40
+    #     # Penalize for low HP
+    #     if our_hp_fraction < 1.0:  # Any damage
+    #         point_modifier -= 15
+    #     if our_hp_fraction < 0.5:  # Below half health
+    #         point_modifier -= 25
+    #     if our_hp_fraction < 0.25:  # Critical health
+    #         point_modifier -= 40
 
-        # Reward for opponent's low HP
-        if opp_hp_fraction < 1.0:  # Any damage
-            point_modifier += 10
-        if opp_hp_fraction < 0.5:  # Below half health
-            point_modifier += 20
-        if opp_hp_fraction < 0.25:  # Critical health
-            point_modifier += 35
+    #     # Reward for opponent's low HP
+    #     if opp_hp_fraction < 1.0:  # Any damage
+    #         point_modifier += 10
+    #     if opp_hp_fraction < 0.5:  # Below half health
+    #         point_modifier += 20
+    #     if opp_hp_fraction < 0.25:  # Critical health
+    #         point_modifier += 35
 
-        # Game State 2: Type Advantage/Disadvantage
-        if our_pokemon and opponent_pokemon:
-            for our_type in our_pokemon.types:
-                if our_type:  # Check if type exists (not None)
-                    for opp_type in opponent_pokemon.types:
-                        if opp_type:  # Check if type exists (not None)
-                            effectiveness = PokeSim.get_type_ef(our_type, opp_type)
-                            if effectiveness > 1:  # Super effective
-                                point_modifier += 45
-                            elif effectiveness < 1:  # Not very effective
-                                point_modifier -= 30
-                            elif effectiveness == 0:  # Immune
-                                point_modifier -= 60
+    #     # Game State 2: Type Advantage/Disadvantage
+    #     if our_pokemon and opponent_pokemon:
+    #         for our_type in our_pokemon.types:
+    #             if our_type:  # Check if type exists (not None)
+    #                 for opp_type in opponent_pokemon.types:
+    #                     if opp_type:  # Check if type exists (not None)
+    #                         effectiveness = PokeSim.get_type_ef(our_type, opp_type)
+    #                         if effectiveness > 1:  # Super effective
+    #                             point_modifier += 45
+    #                         elif effectiveness < 1:  # Not very effective
+    #                             point_modifier -= 30
+    #                         elif effectiveness == 0:  # Immune
+    #                             point_modifier -= 60
 
-        # Game State 3: Status Conditions
-        if our_pokemon.nv_status:
-            if our_pokemon.nv_status == gs.BURNED:
-                point_modifier -= 30  # Significant penalty for burn (reduces attack)
-            elif our_pokemon.nv_status == gs.PARALYZED:
-                point_modifier -= 40  # Major penalty for paralysis (reduces speed)
-            elif our_pokemon.nv_status == gs.POISONED:
-                point_modifier -= 25  # Moderate penalty for poison
-            elif our_pokemon.nv_status == gs.BADLY_POISONED:
-                point_modifier -= 35  # Higher penalty for toxic
-            elif our_pokemon.nv_status == gs.ASLEEP:
-                point_modifier -= 45  # Major penalty for sleep
+    #     # Game State 3: Status Conditions
+    #     if our_pokemon.nv_status:
+    #         if our_pokemon.nv_status == gs.BURNED:
+    #             point_modifier -= 30  # Significant penalty for burn (reduces attack)
+    #         elif our_pokemon.nv_status == gs.PARALYZED:
+    #             point_modifier -= 40  # Major penalty for paralysis (reduces speed)
+    #         elif our_pokemon.nv_status == gs.POISONED:
+    #             point_modifier -= 25  # Moderate penalty for poison
+    #         elif our_pokemon.nv_status == gs.BADLY_POISONED:
+    #             point_modifier -= 35  # Higher penalty for toxic
+    #         elif our_pokemon.nv_status == gs.ASLEEP:
+    #             point_modifier -= 45  # Major penalty for sleep
 
-        if opponent_pokemon.nv_status:
-            if opponent_pokemon.nv_status == gs.BURNED:
-                point_modifier += 25  # Reward for opponent's burn
-            elif opponent_pokemon.nv_status == gs.PARALYZED:
-                point_modifier += 35  # Good reward for opponent's paralysis
-            elif opponent_pokemon.nv_status == gs.POISONED:
-                point_modifier += 20  # Moderate reward for poison
-            elif opponent_pokemon.nv_status == gs.BADLY_POISONED:
-                point_modifier += 30  # Higher reward for toxic
-            elif opponent_pokemon.nv_status == gs.ASLEEP:
-                point_modifier += 40  # Major reward for sleep
+    #     if opponent_pokemon.nv_status:
+    #         if opponent_pokemon.nv_status == gs.BURNED:
+    #             point_modifier += 25  # Reward for opponent's burn
+    #         elif opponent_pokemon.nv_status == gs.PARALYZED:
+    #             point_modifier += 35  # Good reward for opponent's paralysis
+    #         elif opponent_pokemon.nv_status == gs.POISONED:
+    #             point_modifier += 20  # Moderate reward for poison
+    #         elif opponent_pokemon.nv_status == gs.BADLY_POISONED:
+    #             point_modifier += 30  # Higher reward for toxic
+    #         elif opponent_pokemon.nv_status == gs.ASLEEP:
+    #             point_modifier += 40  # Major reward for sleep
 
-        # Game State 4: Field Effects
-        if sim_battle.battlefield:
-            if sim_battle.battlefield.weather == gs.RAIN:
-                # Evaluate rain effects based on typing
-                if 'water' in our_pokemon.types:
-                    point_modifier += 20
-                if 'fire' in our_pokemon.types:
-                    point_modifier -= 20
-            elif sim_battle.battlefield.weather == gs.HARSH_SUNLIGHT:
-                # Evaluate sun effects based on typing
-                if 'fire' in our_pokemon.types:
-                    point_modifier += 20
-                if 'water' in our_pokemon.types:
-                    point_modifier -= 20
+    #     # Game State 4: Field Effects
+    #     if sim_battle.battlefield:
+    #         if sim_battle.battlefield.weather == gs.RAIN:
+    #             # Evaluate rain effects based on typing
+    #             if 'water' in our_pokemon.types:
+    #                 point_modifier += 20
+    #             if 'fire' in our_pokemon.types:
+    #                 point_modifier -= 20
+    #         elif sim_battle.battlefield.weather == gs.HARSH_SUNLIGHT:
+    #             # Evaluate sun effects based on typing
+    #             if 'fire' in our_pokemon.types:
+    #                 point_modifier += 20
+    #             if 'water' in our_pokemon.types:
+    #                 point_modifier -= 20
 
-        # Game State 5: Ability Evaluation
-        if our_pokemon.ability:
-            # Add points for particularly valuable abilities
-            valuable_abilities = ['intimidate', 'levitate', 'speed-boost', 'drought', 'drizzle']
-            if our_pokemon.ability in valuable_abilities:
-                point_modifier += 25
+    #     # Game State 5: Ability Evaluation
+    #     if our_pokemon.ability:
+    #         # Add points for particularly valuable abilities
+    #         valuable_abilities = ['intimidate', 'levitate', 'speed-boost', 'drought', 'drizzle']
+    #         if our_pokemon.ability in valuable_abilities:
+    #             point_modifier += 25
 
-        return point_modifier
+    #     return point_modifier
 
     # def action_engine(self, battle: Battle) -> float:
     # """
