@@ -320,45 +320,20 @@ class MinMaxAgent(Player):
         return 5
 
     def minimax(
-        self, battle: Battle, depth: int, is_max_player: bool, payoff_matrix: Dict
-    ) -> Tuple[float, Optional[Union[Pokemon, BattleOrder]]]:
-        """Minimax algorithm using payoff matrix"""
-        try:
-            # Base case
-            if depth == 0 or battle.finished:
-                return self.evaluate_state(battle), None
+        self,
+        battle: poke_battle_sim.Battle,
+        depth: int,
+        alpha: int,
+        beta: int,
+        isPlayerTurn: bool,
+    ) -> float:
+        """Minimax algorithm"""
 
-            moves = (
-                self.get_possible_moves(battle)
-                if is_max_player
-                else self.get_possible_opponent_moves(battle)
-            )
-
-            if not moves:
-                return self.evaluate_state(battle), None
-
-            best_move = moves[0]
-            best_score = float("-inf") if is_max_player else float("inf")
-
-            for move in moves:
-                if is_max_player:
-                    # Use worst possible outcome for this move
-                    score = min(payoff_matrix[move].values())
-                    if score > best_score:
-                        best_score = score
-                        best_move = move
-                else:
-                    # Use best possible outcome for opponent
-                    score = max(payoff_matrix[move].values())
-                    if score < best_score:
-                        best_score = score
-                        best_move = move
-
-            return best_score, best_move
-
-        except Exception as e:
-            print(f"Error in minimax: {str(e)}")
-            return 0.0, None
+        if depth == 0 or battle.is_finished:
+            return self.evaluate_state(battle)
+        else:
+            pass
+        return 1
 
     def choose_random_move(self, battle: Battle) -> BattleOrder:
         """Choose a random move from available moves or switches"""
