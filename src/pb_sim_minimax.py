@@ -1,4 +1,5 @@
 import poke_battle_sim as pb
+from poke_battle_sim.conf import global_settings as gs
 import copy
 
 
@@ -21,7 +22,91 @@ class MinimaxTrainer(pb.Trainer):
         pass
 
     def evaluate_state(self, battle: pb.Battle) -> int:
-        return 5
+        point_modifier: int = 0
+        
+        # Get current Pokemon for each trainer
+        our_pokemon = battle.t1.current_poke
+        opponent_pokemon = battle.t2.current_poke
+
+        # Calculate HP fractions
+        our_hp_fraction = our_pokemon.cur_hp / our_pokemon.max_hp
+        opp_hp_fraction = opponent_pokemon.cur_hp / opponent_pokemon.max_hp
+
+        # HP State Scoring
+        if our_hp_fraction < 1.0:  # Any damage
+            point_modifier -= 15
+        if our_hp_fraction < 0.5:  # Below half health
+            point_modifier -= 25
+        if our_hp_fraction < 0.25:  # Critical health
+            point_modifier -= 40
+
+        # Opponent HP Scoring
+        if opp_hp_fraction < 1.0:  # Any damage
+            point_modifier += 10
+        if opp_hp_fraction < 0.5:  # Below half health
+            point_modifier += 20
+        if opp_hp_fraction < 0.25:  # Critical health
+            point_modifier += 35
+
+        # Type Advantage Scoring
+        if our_pokemon and opponent_pokemon:
+            for our_type in our_pokemon.types:
+                if our_type:  
+                    for opp_type in opponent_pokemon.types:
+                        if opp_type:
+                            effectiveness = pb.PokeSim.get_type_ef(our_type, opp_type)
+                            if effectiveness > 1:  # Super effective
+                                point_modifier += 45
+                            elif effectiveness < 1:  # Not very effective
+                                point_modifier -= 30
+                            elif effectiveness == 0:  # Immune
+                                point_modifier -= 60
+
+        # Status Condition Scoring
+        if our_pokemon.nv_status:
+            if our_pokemon.nv_status == gs.BURNED:
+                point_modifier -= 30  # Significant penalty for burn
+            elif our_pokemon.nv_status == gs.PARALYZED:
+                point_modifier -= 40  # Major penalty for paralysis
+            elif our_pokemon.nv_status == gs.POISONED:
+                point_modifier -= 25  # Moderate penalty for poison
+            elif our_pokemon.nv_status == gs.BADLY_POISONED:
+                point_modifier -= 35  # Higher penalty for toxic
+            elif our_pokemon.nv_status == gs.ASLEEP:
+                point_modifier -= 45  # Major penalty for sleep
+
+        if opponent_pokemon.nv_status:
+            if opponent_pokemon.nv_status == gs.BURNED:
+                point_modifier += 25  # Reward for opponent's burn
+            elif opponent_pokemon.nv_status == gs.PARALYZED:
+                point_modifier += 35  # Good reward for opponent's paralysis
+            elif opponent_pokemon.nv_status == gs.POISONED:
+                point_modifier += 20  # Moderate reward for poison
+            elif opponent_pokemon.nv_status == gs.BADLY_POISONED:
+                point_modifier += 30  # Higher reward for toxic
+            elif opponent_pokemon.nv_status == gs.ASLEEP:
+                point_modifier += 40  # Major reward for sleep
+
+        # Weather/Field Effects Scoring
+        if battle.battlefield:
+            if battle.battlefield.weather == gs.RAIN:
+                if 'water' in our_pokemon.types:
+                    point_modifier += 20
+                if 'fire' in our_pokemon.types:
+                    point_modifier -= 20
+            elif battle.battlefield.weather == gs.HARSH_SUNLIGHT:
+                if 'fire' in our_pokemon.types:
+                    point_modifier += 20
+                if 'water' in our_pokemon.types:
+                    point_modifier -= 20
+
+        # Ability Scoring
+        if our_pokemon.ability:
+            valuable_abilities = ['intimidate', 'levitate', 'speed-boost', 'drought', 'drizzle']
+            if our_pokemon.ability in valuable_abilities:
+                point_modifier += 25
+
+        return point_modifier
 
     def get_opponent_stats(self, opponent):
         return opponent.copy()
