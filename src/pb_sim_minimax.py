@@ -87,18 +87,66 @@ class MinimaxTrainer(pb.Trainer):
             elif opponent_pokemon.nv_status == gs.ASLEEP:
                 point_modifier += 40  # Major reward for sleep
 
-        # Weather/Field Effects Scoring
+        # Enhanced Weather/Field Effects Scoring
         if battle.battlefield:
-            if battle.battlefield.weather == gs.RAIN:
+            weather = battle.battlefield.weather
+            
+            if weather == gs.RAIN:
+                # Water moves powered up, Fire moves weakened
                 if 'water' in our_pokemon.types:
-                    point_modifier += 20
+                    point_modifier += 25  # Boosted water STAB
                 if 'fire' in our_pokemon.types:
-                    point_modifier -= 20
-            elif battle.battlefield.weather == gs.HARSH_SUNLIGHT:
+                    point_modifier -= 20  # Weakened fire moves
+                # Thunder always hits in rain
+                if any(move.name.lower() == 'thunder' for move in our_pokemon.moves):
+                    point_modifier += 15
+                    
+            elif weather == gs.HARSH_SUNLIGHT:
+                # Fire moves powered up, Water moves weakened
                 if 'fire' in our_pokemon.types:
-                    point_modifier += 20
+                    point_modifier += 25  # Boosted fire STAB
                 if 'water' in our_pokemon.types:
+                    point_modifier -= 20  # Weakened water moves
+                # Solar Beam doesn't need charging
+                if any(move.name.lower() == 'solar beam' for move in our_pokemon.moves):
+                    point_modifier += 15
+                    
+            elif weather == gs.SANDSTORM:
+                # Rock, Ground, Steel types get SpDef boost
+                if any(type_ in ['rock', 'ground', 'steel'] for type_ in our_pokemon.types):
+                    point_modifier += 20
+                # Other types take damage
+                elif not any(type_ in ['rock', 'ground', 'steel'] for type_ in our_pokemon.types):
+                    point_modifier -= 15
+                    
+            elif weather == gs.HAIL:
+                # Ice types don't take damage, others do
+                if 'ice' in our_pokemon.types:
+                    point_modifier += 20
+                else:
+                    point_modifier -= 15
+                # Blizzard always hits in hail
+                if any(move.name.lower() == 'blizzard' for move in our_pokemon.moves):
+                    point_modifier += 15
+                    
+            elif weather == gs.FOG:
+                # Reduces accuracy of all moves
+                point_modifier -= 10  # General penalty for accuracy reduction
+                # If we have moves that ignore accuracy, that's valuable
+                if any(move.name.lower() in ['swift', 'aerial ace', 'magical leaf'] for move in our_pokemon.moves):
+                    point_modifier += 15
+
+            # Check opponent's weather interaction
+            if weather != gs.CLEAR:
+                # Opponent type advantages in weather
+                if weather == gs.RAIN and 'water' in opponent_pokemon.types:
                     point_modifier -= 20
+                elif weather == gs.HARSH_SUNLIGHT and 'fire' in opponent_pokemon.types:
+                    point_modifier -= 20
+                elif weather == gs.SANDSTORM and any(type_ in ['rock', 'ground', 'steel'] for type_ in opponent_pokemon.types):
+                    point_modifier -= 15
+                elif weather == gs.HAIL and 'ice' in opponent_pokemon.types:
+                    point_modifier -= 15
 
         # Ability Scoring
         if our_pokemon.ability:
@@ -117,7 +165,6 @@ class MinimaxTrainer(pb.Trainer):
     def find_best_state(self, state: MinimaxState, opp_move, depth, isMaxPlayer) -> int:
         if state.battle.is_finished() or depth == 0:
             # Base case
-
             return self.evaluate_state(state.battle)
 
         if isMaxPlayer:
