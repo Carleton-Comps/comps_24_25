@@ -12,6 +12,7 @@ class BattleSim:
 
         pass
     
-    def damage_
+    def damage_calculator(self, move, target):
+        
     def simulate_turn(self, move1, move2):
         pass
