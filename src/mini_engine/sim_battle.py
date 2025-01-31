@@ -13,6 +13,7 @@ class BattleSim:
             "level": 10,
             "has_fainted": False,
         }
+ 
         self.pokemon2 = {
             "name": "",
             "stats": [],
