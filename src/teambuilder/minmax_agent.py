@@ -4,8 +4,8 @@ from poke_env.environment.battle import Battle
 from poke_env.environment.pokemon import Pokemon
 from poke_env.player.random_player import RandomPlayer
 from teambuilder.custom_teambuilder import custom_builder
-from type_chart import TYPE_CHART
-from vigor_chart import VIGOR_CHART
+from data.type_chart import TYPE_CHART
+from data.vigor_chart import VIGOR_CHART
 import numpy as np
 from typing import List, Tuple, Optional, Union, Dict
 import random
