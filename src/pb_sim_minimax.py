@@ -14,7 +14,7 @@ class MinimaxState:
 
 class MinimaxTrainer(pb.Trainer):
     def __init__(
-        self, name: str, poke_list: list[pb.Pokemon], selection: callable = None
+        self, name: str, poke_list: list[pb.Pokemon], selection:  callable = None
     ):
         super().__init__(name, poke_list, selection)
 
