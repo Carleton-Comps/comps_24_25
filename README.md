@@ -7,3 +7,5 @@ cd pokemon-showdown
 npm install
 cp config/config-example.js config/config.js
 node pokemon-showdown start --no-security
+
+To run Minimax download the minimax and teams file, and simply run the Minimax file. Right now there is an instance of a battle set up within it and commented out code to automate many battles. Additionally, it needs the edited Poke-Battle-Sim so that deepCopy works.
